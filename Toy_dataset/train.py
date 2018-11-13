@@ -1,24 +1,24 @@
 import numpy as np
 import tensorflow as tf
 import random
-from dataloader import Gen_Data_loader, Dis_Data_loader
+from Toy_dataset.dataloader import Gen_Data_loader, Dis_Data_loader
 import pickle
-from target_lstm import TARGET_LSTM
-from generator import Generator
-from discriminator import Discriminator
+from Toy_dataset.target_lstm import TARGET_LSTM
+from Toy_dataset.generator import Generator
+from Toy_dataset.discriminator import Discriminator
+
 # from rollout import ROLLOUT
 
 
 #########################################################################################
 #  Generator  Hyper-parameters
 ######################################################################################
-EMB_DIM = 32 # embedding dimension
-HIDDEN_DIM = 32 # hidden state dimension of lstm cell
-SEQ_LENGTH = 20 # sequence length
+EMB_DIM = 32  # embedding dimension
+HIDDEN_DIM = 32  # hidden state dimension of lstm cell
+SEQ_LENGTH = 20  # sequence length
 
 SEED = 88
 BATCH_SIZE = 64
-
 
 #########################################################################################
 #  Discriminator  Hyper-parameters
@@ -29,7 +29,6 @@ dis_num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160, 160]
 dis_dropout_keep_prob = 0.75
 dis_l2_reg_lambda = 0.2
 dis_batch_size = 64
-
 
 #########################################################################################
 #  Basic Training Parameters
@@ -98,20 +97,16 @@ def pre_train_epoch(sess, trainable_model, data_loader):
 #     data_loader.reset_pointer()
 
 
-
 def main():
     random.seed(SEED)
     np.random.seed(SEED)
-
 
     # prepare data
     gen_data_loader = Gen_Data_loader(BATCH_SIZE)
     likelihood_data_loader = Gen_Data_loader(BATCH_SIZE)  # For testing
     dis_data_loader = Dis_Data_loader(BATCH_SIZE)
 
-
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
-
 
     # target_params's size: [15 * 5000 * 32]
     target_params = pickle.load(open('./save/target_params_py3.pkl', 'rb'))
@@ -159,7 +154,7 @@ def main():
     buffer = 'Start pre-training discriminator...'
     print(buffer)
     log.write(buffer)
-    for _ in range(10):   # 10
+    for _ in range(10):  # 10
         generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
         dis_data_loader.load_train_data(positive_file, negative_file)
         for _ in range(3):
@@ -211,13 +206,13 @@ def main():
             # log.write(buffer)
             # rewards_loss = generator.update_with_rewards(sess, litter1_samples, rewards, START_TOKEN)
 
-
         # Test
         if total_batch % 1 == 0 or total_batch == TOTAL_BATCH - 1:
             generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
             likelihood_data_loader.create_batches(eval_file)
             test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
-            buffer = 'reward-train epoch %s train loss %s test_loss %s\n' % (str(total_batch), str(rewards_loss), str(test_loss))
+            buffer = 'reward-train epoch %s train loss %s test_loss %s\n' % (
+            str(total_batch), str(rewards_loss), str(test_loss))
             print(buffer)
             log.write(buffer)
             ans_file.write("%s\n" % str(test_loss))
@@ -235,7 +230,8 @@ def main():
                         discriminator.input_y: y_batch,
                         discriminator.dropout_keep_prob: dis_dropout_keep_prob,
                     }
-                    d_loss, d_acc, _ = sess.run([discriminator.loss, discriminator.accuracy, discriminator.train_op], feed)
+                    d_loss, d_acc, _ = sess.run([discriminator.loss, discriminator.accuracy, discriminator.train_op],
+                                                feed)
             if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
                 buffer = "discriminator loss %f acc %f\n" % (d_loss, d_acc)
                 print(buffer)
@@ -244,6 +240,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-

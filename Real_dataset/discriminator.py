@@ -125,7 +125,6 @@ class Discriminator(object):
                 self.scores = tf.nn.xw_plus_b(self.h_drop, W, b, name="scores")
                 self.ypred_for_auc = tf.nn.softmax(self.scores)
 
-
             # CalculateMean cross-entropy loss
             with tf.name_scope("loss"):
                 losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.scores, labels=self.input_y)
@@ -137,14 +136,13 @@ class Discriminator(object):
                 #
                 # self.loss = gradient_penalty
 
-
             # Calculate accuracy
             with tf.name_scope("accuracy"):
                 # correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), y_)
                 # acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
                 self.predictions = tf.argmax(self.scores, 1, name="predictions")
                 self.label_ids = tf.argmax(self.input_y, 1)
-                correct_predictions = tf.equal(self.predictions,self.label_ids)
+                correct_predictions = tf.equal(self.predictions, self.label_ids)
                 # self.predictions, tf.argmax(self.input_y, 1))
                 self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")
 

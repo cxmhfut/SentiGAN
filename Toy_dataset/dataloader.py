@@ -77,7 +77,6 @@ class Dis_Data_loader():
 
         self.pointer = 0
 
-
     def next_batch(self):
         """take next batch (sentence, label) by self.pointer"""
         ret = self.sentences_batches[self.pointer], self.labels_batches[self.pointer]

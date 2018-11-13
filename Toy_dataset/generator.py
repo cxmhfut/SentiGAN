@@ -49,7 +49,6 @@ class Generator(object):
             h = tf.zeros([self.batch_size, self.num_units])
             self.initial_state = tf.contrib.rnn.LSTMStateTuple(c=c, h=h)
 
-
             ###################### pretain with targets ######################
             helper_pt = tf.contrib.seq2seq.TrainingHelper(
                 inputs=self.emb_x,
@@ -99,8 +98,8 @@ class Generator(object):
             optimizer_gan = tf.train.RMSPropOptimizer(self.learning_rate)
             gradients_gan, v_gan = zip(*optimizer_gan.compute_gradients(self.rewards_loss))
             gradients_gan, _gan = tf.clip_by_global_norm(gradients_gan, self.grad_clip)
-            self.rewards_updates = optimizer_gan.apply_gradients(zip(gradients_gan, v_gan), global_step=self.global_step)
-
+            self.rewards_updates = optimizer_gan.apply_gradients(zip(gradients_gan, v_gan),
+                                                                 global_step=self.global_step)
 
             ###################### train without targets ######################
             helper_o = tf.contrib.seq2seq.SampleEmbeddingHelper(
@@ -122,7 +121,6 @@ class Generator(object):
             )
 
             self.out_tokens = tf.unstack(outputs_o.sample_id, axis=0)
-
 
             ###################### rollout ######################
             self.rollout_input_ids = tf.placeholder(dtype=tf.int32, shape=[None, None])
@@ -150,7 +148,7 @@ class Generator(object):
             helper_MC = tf.contrib.seq2seq.SampleEmbeddingHelper(
                 self.g_embeddings,
                 self.rollout_next_id,
-                end_token=5001 # self.end_token
+                end_token=5001  # self.end_token
             )
             rollout_decoder_MC = tf.contrib.seq2seq.BasicDecoder(
                 cell=self.decoder_cell,
@@ -166,8 +164,6 @@ class Generator(object):
                 swap_memory=True
             )
             self.sample_id_MC = decoder_output_MC.sample_id
-
-
 
         self.saver = tf.train.Saver(tf.global_variables())
 
@@ -285,4 +281,3 @@ class Generator(object):
 
         rewards = np.transpose(np.array(rewards)) / (1.0 * rollout_num)  # batch_size x seq_length
         return rewards
-

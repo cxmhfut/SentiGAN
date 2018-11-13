@@ -1,21 +1,21 @@
 import numpy as np
 import tensorflow as tf
 import random
-from dataloader import Gen_Data_loader, Dis_Data_loader
+from Real_dataset.dataloader import Gen_Data_loader, Dis_Data_loader
 import pickle
-from generator import Generator
-from discriminator import Discriminator
+from Real_dataset.generator import Generator
+from Real_dataset.discriminator import Discriminator
+
 # from rollout import ROLLOUT
 
 
 #########################################################################################
 #  Generator  Hyper-parameters
 ######################################################################################
-EMB_DIM = 200 # embedding dimension
-HIDDEN_DIM = 200 # hidden state dimension of lstm cell
+EMB_DIM = 200  # embedding dimension
+HIDDEN_DIM = 200  # hidden state dimension of lstm cell
 MAX_SEQ_LENGTH = 17  # max sequence length
 BATCH_SIZE = 64
-
 
 #########################################################################################
 #  Discriminator  Hyper-parameters
@@ -26,7 +26,6 @@ dis_num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160]
 dis_dropout_keep_prob = 0.75
 dis_l2_reg_lambda = 0.2
 dis_batch_size = 64
-
 
 #########################################################################################
 #  Basic Training Parameters
@@ -44,7 +43,6 @@ sst_pos_file_txt = dataset_path + 'sstb/sst_pos_sentences.txt'
 sst_pos_file_id = dataset_path + 'sstb/sst_pos_sentences.id'
 sst_neg_file_txt = dataset_path + 'sstb/sst_neg_sentences.txt'
 sst_neg_file_id = dataset_path + 'sstb/sst_neg_sentences.id'
-
 
 eval_file = 'save/eval_file.txt'
 eval_text_file = 'save/eval_text_file.txt'
@@ -85,7 +83,7 @@ def generate_infer(sess, trainable_model, epoch, vocab_list):
     for _ in range(int(100)):
         # generated_samples.extend(trainable_model.infer(sess))
         generated_samples.extend(trainable_model.generate(sess))
-    file = infer_file+str(epoch)+'.txt'
+    file = infer_file + str(epoch) + '.txt'
     with open(file, 'w') as fout:
         for poem in generated_samples:
             poem = list(poem)
@@ -141,7 +139,6 @@ def pre_train_epoch(sess, trainable_model, data_loader):
 
 
 def main():
-
     # load embedding info
     vocab_dict, vocab_size, vocab_list = load_emb_data(emb_dict_file)
 
@@ -173,7 +170,7 @@ def main():
     buffer = 'Start pre-training generator...'
     print(buffer)
     log.write(buffer + '\n')
-    for epoch in range(150):  #120
+    for epoch in range(150):  # 120
         train_loss = pre_train_epoch(sess, generator, pre_train_data_loader)
         if epoch % 5 == 0:
             generate_samples(sess, generator, 1, eval_file, vocab_list, if_log=True, epoch=epoch)
@@ -184,7 +181,7 @@ def main():
     buffer = 'Start pre-training discriminator...'
     print(buffer)
     log.write(buffer)
-    for _ in range(10):   # 10
+    for _ in range(10):  # 10
         generate_samples(sess, generator, 70, negative_file, vocab_list)
         dis_data_loader.load_train_data([sst_pos_file_id, sst_neg_file_id], [negative_file])
         for _ in range(3):
@@ -284,6 +281,7 @@ def main():
         for _ in range(10):
             train_loss = pre_train_epoch(sess, generator, pre_train_data_loader)
 
+
 # def change_rewards(rewards):
 #     ans = []
 #     for item in rewards:
@@ -300,10 +298,8 @@ def build_from_ids(vv, vocab_list):
     a = []
     for i in vv:
         a.append(vocab_list[i])
-    return(' '.join(a))
+    return (' '.join(a))
 
 
 if __name__ == '__main__':
     main()
-
-

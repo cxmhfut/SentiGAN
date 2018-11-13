@@ -96,8 +96,8 @@ class Generator(object):
             optimizer_gan = tf.train.RMSPropOptimizer(self.learning_rate)
             gradients_gan, v_gan = zip(*optimizer_gan.compute_gradients(self.rewards_loss))
             gradients_gan, _gan = tf.clip_by_global_norm(gradients_gan, self.grad_clip)
-            self.rewards_updates = optimizer_gan.apply_gradients(zip(gradients_gan, v_gan), global_step=self.global_step)
-
+            self.rewards_updates = optimizer_gan.apply_gradients(zip(gradients_gan, v_gan),
+                                                                 global_step=self.global_step)
 
             ###################### train without targets ######################
             helper_o = tf.contrib.seq2seq.SampleEmbeddingHelper(
@@ -133,7 +133,7 @@ class Generator(object):
                 initial_state=self.initial_state,
                 output_layer=self.output_layer
             )
-            
+
             # beam_search_initial_state = tf.contrib.seq2seq.tile_batch(
             #     self.initial_state,
             #     multiplier=20)
@@ -161,7 +161,6 @@ class Generator(object):
             sample_id = outputs_i.sample_id
 
             self.infer_tokens = tf.unstack(sample_id, axis=0)
-
 
             ###################### rollout ######################
             self.rollout_input_ids = tf.placeholder(dtype=tf.int32, shape=[None, None])
@@ -264,7 +263,7 @@ class Generator(object):
             jj = min(len(x[i]), self.max_sequence_length - 2)
             for j in range(jj):
                 ans[i][j + 1] = x[i][j]
-            ans[i][jj+1] = end_id
+            ans[i][jj + 1] = end_id
             ans_lengths.append(jj + 2)
         return ans, ans_lengths
 
@@ -274,7 +273,7 @@ class Generator(object):
         x_len = len(x)
         ans = np.zeros((x_len, max_l), dtype=int)
         for i in range(x_len):
-            jj = min(len(x[i]), max_l-1)
+            jj = min(len(x[i]), max_l - 1)
             for j in range(jj):
                 ans[i][j] = x[i][j]
             ans[i][jj] = end_id
@@ -293,7 +292,7 @@ class Generator(object):
         for ll in range(x_len):
             kk = lengths[ll] - 1
             for jj in range(kk):
-                ans[ll][jj] = 1/float(kk)
+                ans[ll][jj] = 1 / float(kk)
         return ans
 
     def get_reward(self, sess, input_x, rollout_num, discriminator):
@@ -370,8 +369,6 @@ class Generator(object):
                 rewards[i][j] = rewards[i][-1]
         return rewards
 
-
-
     def padding(self, inputs, max_sequence_length):
         batch_size = len(inputs)
         inputs_batch_major = np.zeros(shape=[batch_size, max_sequence_length], dtype=np.int32)  # == PAD
@@ -383,4 +380,3 @@ class Generator(object):
     def save_model(self, sess):
         self.saver.save(sess, 'save/ckpt/model.ckpt')
         print("save model success!")
-
